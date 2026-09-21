@@ -7,46 +7,47 @@ import { getAnonymousId } from "@/lib/anonymous-id";
 import type { Challenge, Meeting, MeetingBlock, Plan, Poll, PollOption, Theme } from "@/lib/types";
 import { CalendarDays, ChevronRight, Clock3, Flame, MessageCircle, PartyPopper, Send, Sparkles, Timer, LockKeyhole } from "lucide-react";
 
-const fmt = (iso: string) =>
-  new Intl.DateTimeFormat("es-ES", {day: "numeric", month: "short", year: "numeric"}).format(new Date(iso));
-const timeFmt = (iso:string) =>
-  new Intl.DateTimeFormat("es-ES",{hour:"2-digit",minute:"2-digit"}).format(new Date(iso));
+const fmt = (iso: string, options?: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat("es-ES", options || { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
+
+const timeFmt = (iso: string) =>
+  new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 export function Home() {
-  const [theme,setTheme]=useState<Theme|null>(null);
-  const [meetings,setMeetings]=useState<Meeting[]>([]);
-  const [challenge,setChallenge]=useState<Challenge|null>(null);
-  const [settings,setSettings]=useState<Record<string,string>>({});
-  const [links,setLinks]=useState<any[]>([]);
-  const [selected,setSelected]=useState<string|null>(null);
+  const [theme, setTheme] = useState<Theme | null>(null);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [links, setLinks] = useState<any[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
 
-  async function load(){
-    const now=new Date().toISOString();
-    const [{data:t},{data:m},{data:c},{data:s},{data:l}]=await Promise.all([
-      supabase.from("themes").select("*").eq("active",true).order("created_at",{ascending:false}).limit(1).maybeSingle(),
-      supabase.from("meetings").select("*").eq("published",true).gte("meeting_date",now.slice(0,10)).order("meeting_date").limit(8),
-      supabase.from("challenges").select("*").eq("published",true).lte("starts_at",now).or(`ends_at.is.null,ends_at.gt.${now}`).order("starts_at",{ascending:false}).limit(1).maybeSingle(),
+  async function load() {
+    const now = new Date().toISOString();
+    const [{ data: t }, { data: m }, { data: c }, { data: s }, { data: l }] = await Promise.all([
+      supabase.from("themes").select("*").eq("active", true).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("meetings").select("*").eq("published", true).gte("meeting_date", now.slice(0, 10)).order("meeting_date").limit(8),
+      supabase.from("challenges").select("*").eq("published", true).lte("starts_at", now).or(`ends_at.is.null,ends_at.gt.${now}`).order("starts_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("site_settings").select("*"),
-      supabase.from("links").select("*").eq("published",true).order("sort_order")
+      supabase.from("links").select("*").eq("published", true).order("sort_order")
     ]);
-    setTheme(t); setMeetings(m??[]); setChallenge(c);
-    setSettings(Object.fromEntries((s??[]).map((x:any)=>[x.key,x.value])));
-    setLinks(l??[]);
-    if(!selected && m?.[0]) setSelected(m[0].id);
+    setTheme(t); setMeetings(m ?? []); setChallenge(c);
+    setSettings(Object.fromEntries((s ?? []).map((x: any) => [x.key, x.value])));
+    setLinks(l ?? []);
+    if (!selected && m?.[0]) setSelected(m[0].id);
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     load();
-    const ch=supabase.channel("jlt-v2-home")
-      .on("postgres_changes",{event:"*",schema:"public",table:"themes"},load)
-      .on("postgres_changes",{event:"*",schema:"public",table:"meetings"},load)
-      .on("postgres_changes",{event:"*",schema:"public",table:"challenges"},load)
-      .on("postgres_changes",{event:"*",schema:"public",table:"site_settings"},load)
+    const ch = supabase.channel("jlt-v2-home")
+      .on("postgres_changes", { event: "*", schema: "public", table: "themes" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "challenges" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "site_settings" }, load)
       .subscribe();
-    return ()=>{supabase.removeChannel(ch)};
-  },[]);
+    return () => { supabase.removeChannel(ch) };
+  }, []);
 
-  const next=meetings[0];
+  const next = meetings[0];
   return <div className="px-4 pb-8 pt-4">
     <header className="flex items-center justify-between">
       <div>
@@ -76,7 +77,7 @@ export function Home() {
           <ChevronRight className="mt-1 shrink-0 text-[#b6c76d]"/>
         </div>
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-[#cbd2cd]">
-          <span className="rounded-full bg-white/6 px-3 py-2"><CalendarDays size={13} className="mr-1 inline"/> {fmt(next.starts_at,{dateStyle:"short"})}</span>
+          <span className="rounded-full bg-white/6 px-3 py-2"><CalendarDays size={13} className="mr-1 inline"/> {fmt(next.starts_at, { dateStyle: "short" })}</span>
           <span className="rounded-full bg-white/6 px-3 py-2"><Clock3 size={13} className="mr-1 inline"/> {timeFmt(next.starts_at)}</span>
           {next.location && <span className="rounded-full bg-white/6 px-3 py-2">{next.location}</span>}
         </div>
@@ -92,8 +93,8 @@ export function Home() {
     <section className="mt-5">
       <div className="mb-2 flex items-center justify-between"><p className="text-xs font-black uppercase tracking-[.16em] text-[#aab5ae]">Calendario</p><span className="text-xs text-[#69746d]">2026/27</span></div>
       <div className="space-y-2">
-        {meetings.slice(0,6).map(m=><button key={m.id} onClick={()=>setSelected(m.id)} className={`w-full rounded-2xl border p-4 text-left ${selected===m.id?"border-[#b6c76d]/50 bg-[#b6c76d]/8":"border-white/8 bg-[#111917]"}`}>
-          <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black">{fmt(m.meeting_date,{weekday:"short",day:"2-digit",month:"short"})}</p><p className="mt-1 text-sm text-[#aab5ae]">{m.title}</p></div><ChevronRight size={17} className="text-[#7d8981]"/></div>
+        {meetings.slice(0, 6).map(m => <button key={m.id} onClick={() => setSelected(m.id)} className={`w-full rounded-2xl border p-4 text-left ${selected === m.id ? "border-[#b6c76d]/50 bg-[#b6c76d]/8" : "border-white/8 bg-[#111917]"}`}>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black">{fmt(m.meeting_date, { weekday: "short", day: "2-digit", month: "short" })}</p><p className="mt-1 text-sm text-[#aab5ae]">{m.title}</p></div><ChevronRight size={17} className="text-[#7d8981]"/></div>
         </button>)}
       </div>
     </section>
@@ -101,10 +102,10 @@ export function Home() {
     <section className="mt-4 rounded-2xl border border-white/8 bg-white/3 p-4">
       <p className="text-xs font-black uppercase tracking-widest text-[#aab5ae]">Accesos rápidos</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <Link href={next?`/reunion/${next.id}`:"#"} className="btn btn-secondary"><PartyPopper size={17}/> Reunión</Link>
-        <a href={settings.whatsapp_url||process.env.NEXT_PUBLIC_WHATSAPP_URL||"#"} target="_blank" rel="noreferrer" className="btn btn-primary"><MessageCircle size={17}/> WhatsApp</a>
+        <Link href={next ? `/reunion/${next.id}` : "#"} className="btn btn-secondary"><PartyPopper size={17}/> Reunión</Link>
+        <a href={settings.whatsapp_url || process.env.NEXT_PUBLIC_WHATSAPP_URL || "#"} target="_blank" rel="noreferrer" className="btn btn-primary"><MessageCircle size={17}/> WhatsApp</a>
       </div>
-      {links.length>0&&<div className="mt-3 grid grid-cols-2 gap-2">{links.map((l:any)=><a key={l.id} href={l.url} target="_blank" rel="noreferrer" className="btn btn-secondary text-xs">{l.icon} {l.title}</a>)}</div>}
+      {links.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{links.map((l: any) => <a key={l.id} href={l.url} target="_blank" rel="noreferrer" className="btn btn-secondary text-xs">{l.icon} {l.title}</a>)}</div>}
     </section>
   </div>;
 }
