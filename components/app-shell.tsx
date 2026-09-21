@@ -2,37 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarDays, Shield } from "lucide-react";
+import { Calendar, Sparkles, Heart, Music2, ShieldCheck } from "lucide-react";
+import { PwaRegister } from "./pwa-register";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const path = usePathname();
-  const nav = [
-    { href: "/", label: "Este mes", icon: Home },
-    { href: "/planes", label: "Planes", icon: CalendarDays },
-    { href: "/admin", label: "Admin", icon: Shield }
+  const pathname = usePathname();
+
+  // Si estamos en la vista de presentación a pantalla completa (ThinkGlao), no mostramos el menú
+  if (pathname?.startsWith("/thinkglao/")) {
+    return <>{children}</>;
+  }
+
+  const items = [
+    { href: "/", label: "Este mes", icon: Calendar },
+    { href: "/alabanza", label: "Alabanza", icon: Music2 },
+    { href: "/oracion", label: "Oración", icon: Heart },
+    { href: "/planes", label: "Planes", icon: Sparkles },
+    { href: "/admin", label: "Admin", icon: ShieldCheck },
   ];
+
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto min-h-screen w-full max-w-[560px] safe-bottom">{children}</div>
-      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-[#BFB8AE]/15 bg-[#0F0104]/90 backdrop-blur-2xl">
-        <div className="mx-auto grid max-w-[560px] grid-cols-3">
-          {nav.map(({ href, label, icon: Icon }) => {
-            const active = href === "/" ? path === "/" : path.startsWith(href);
+    <div className="min-h-screen bg-[#0F0104] text-[#F2F2F2] selection:bg-[#590A1F] selection:text-[#BFB8AE]">
+      <PwaRegister />
+      <main className="mx-auto max-w-md pb-24">{children}</main>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#BFB8AE]/10 bg-[#0F0104]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
             return (
-              <Link 
-                key={href} 
-                href={href}
-                className={`flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-colors ${
-                  active ? "text-[#BFB8AE]" : "text-[#8C6969] hover:text-[#BFB8AE]/70"
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center gap-1 rounded-xl px-2.5 py-1.5 transition-all ${
+                  active
+                    ? "text-[#BFB8AE]"
+                    : "text-[#8C6969] hover:text-[#BFB8AE]/70"
                 }`}
               >
-                <Icon size={20} strokeWidth={active ? 2.2 : 1.5} />
-                <span className="font-light tracking-wide">{label}</span>
+                <Icon size={18} className={active ? "text-[#BFB8AE]" : "text-[#8C6969]"} />
+                <span className="text-[10px] font-light tracking-wide">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
-    </main>
+    </div>
   );
 }
