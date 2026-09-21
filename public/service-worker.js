@@ -1,4 +1,4 @@
-const CACHE_NAME = "jovenes-lt-v1";
+const CACHE_NAME = "jovenes-lt-v2";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -6,7 +6,6 @@ const STATIC_ASSETS = [
   "/icons/icon-512x512.png"
 ];
 
-// Instalación del SW y precaching de assets estáticos
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
@@ -14,7 +13,6 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activación y limpieza de caches antiguos
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -26,23 +24,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Estrategia Stale-While-Revalidate para rendimiento y soporte Offline
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  // Manejo de navegación y recursos
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cachedResponse = await cache.match(event.request);
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.mode === "navigate") {
+            return caches.match("/");
           }
-          return networkResponse;
-        })
-        .catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
-    })
+        });
+      })
   );
 });
