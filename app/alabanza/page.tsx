@@ -31,7 +31,9 @@ export default function SongsPage() {
   const [propTitle, setPropTitle] = useState("");
   const [propArtist, setPropArtist] = useState("");
   const [propNotes, setPropNotes] = useState("");
+  const [sending, setSending] = useState(false);
   const [propSent, setPropSent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     supabase.from("songs").select("*").order("title").then(({ data }) => setSongs(data ?? []));
@@ -48,18 +50,29 @@ export default function SongsPage() {
   }, [scrolling]);
 
   async function handlePropose() {
-    if (!propTitle.trim()) return;
-    const { error } = await supabase.from("song_proposals").insert({
-      title: propTitle.trim(),
-      artist: propArtist.trim(),
-      notes: propNotes.trim(),
-    });
-    if (!error) {
+    if (!propTitle.trim() || sending) return;
+    setSending(true);
+    setErrorMsg("");
+
+    const { error } = await supabase.from("song_proposals").insert([
+      {
+        title: propTitle.trim(),
+        artist: propArtist.trim(),
+        notes: propNotes.trim(),
+      },
+    ]);
+
+    setSending(false);
+
+    if (error) {
+      console.error("Error proponiendo canción:", error);
+      setErrorMsg("Error al enviar la propuesta. Revisa la base de datos.");
+    } else {
       setPropTitle("");
       setPropArtist("");
       setPropNotes("");
       setPropSent(true);
-      setTimeout(() => setPropSent(false), 4000);
+      setTimeout(() => setPropSent(false), 5000);
     }
   }
 
@@ -91,7 +104,6 @@ export default function SongsPage() {
           <h1 className="text-2xl font-light text-[#F2F2F2]">Alabanza</h1>
           <p className="mt-1 text-xs font-light text-[#8C6969]">Cancionero con acordes y propuestas para el grupo.</p>
 
-          {/* Pestañas superior */}
           <div className="mt-4 flex rounded-xl border border-[#BFB8AE]/15 bg-black/40 p-1">
             <button
               onClick={() => setActiveTab("cancionero")}
@@ -173,8 +185,15 @@ export default function SongsPage() {
                   onChange={(e) => setPropNotes(e.target.value)}
                 />
               </div>
-              <button onClick={handlePropose} className="btn btn-primary w-full text-xs mt-2">
-                <Send size={14} /> Enviar propuesta
+
+              {errorMsg && <p className="text-xs text-red-400 font-light">{errorMsg}</p>}
+
+              <button 
+                onClick={handlePropose} 
+                disabled={sending || !propTitle.trim()} 
+                className="btn btn-primary w-full text-xs mt-2"
+              >
+                <Send size={14} /> {sending ? "Enviando..." : "Enviar propuesta"}
               </button>
 
               {propSent && (
@@ -187,7 +206,6 @@ export default function SongsPage() {
         </>
       ) : (
         <>
-          {/* Vista detallada de la canción */}
           <div className="sticky top-0 z-40 bg-[#0F0104]/90 backdrop-blur-md pb-3 pt-2 border-b border-[#BFB8AE]/10 flex items-center justify-between">
             <button onClick={() => setSelected(null)} className="btn btn-secondary text-xs py-1 px-3">
               <ArrowLeft size={14} /> Atrás

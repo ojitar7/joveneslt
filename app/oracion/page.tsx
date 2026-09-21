@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus, ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 
 export default function PrayerPage() {
@@ -10,22 +10,23 @@ export default function PrayerPage() {
   const [title, setTitle] = useState("");
   const [sending, setSending] = useState(false);
   const [prayed, setPrayed] = useState<Record<string, boolean>>({});
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // Cargar las últimas 30 intenciones ordenadas de más reciente a más antigua
   async function loadRequests() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("prayer_requests")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(30);
 
-    setRequests(data ?? []);
+    if (!error && data) {
+      setRequests(data);
+    }
   }
 
   useEffect(() => {
     loadRequests();
 
-    // Recuperar intenciones por las que ya se ha rezado localmente
     const saved = localStorage.getItem("jlt-prayed-requests");
     if (saved) {
       try {
@@ -35,7 +36,6 @@ export default function PrayerPage() {
       }
     }
 
-    // Suscripción en tiempo real a cambios en las intenciones
     const ch = supabase
       .channel("prayer-requests-realtime")
       .on(
@@ -50,32 +50,30 @@ export default function PrayerPage() {
     };
   }, []);
 
-  // Publicar nueva intención
   async function createRequest() {
     if (!title.trim() || sending) return;
     setSending(true);
+    setErrorMsg("");
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("prayer_requests")
-      .insert({ title: title.trim(), prayers_count: 0 })
-      .select()
-      .single();
+      .insert([{ title: title.trim(), prayers_count: 0 }]);
 
-    if (!error && data) {
+    if (error) {
+      console.error("Error al publicar intención:", error);
+      setErrorMsg("No se pudo publicar la intención. Revisa la base de datos.");
+    } else {
       setTitle("");
-      // Insertar inmediatamente arriba en el estado local para respuesta instantánea
-      setRequests((prev) => [data, ...prev.slice(0, 29)]);
+      await loadRequests(); // Recargar la lista inmediatamente
     }
     setSending(false);
   }
 
-  // Reaccionar / Rezar por una intención
   async function pray(id: string, currentCount: number) {
     if (prayed[id]) return;
 
     const newCount = currentCount + 1;
 
-    // Actualización optimista local
     setRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, prayers_count: newCount } : r))
     );
@@ -84,7 +82,6 @@ export default function PrayerPage() {
     setPrayed(updatedPrayed);
     localStorage.setItem("jlt-prayed-requests", JSON.stringify(updatedPrayed));
 
-    // Guardar incremento en Supabase
     await supabase
       .from("prayer_requests")
       .update({ prayers_count: newCount })
@@ -102,7 +99,6 @@ export default function PrayerPage() {
         Comparte tus intenciones y únete en oración por las de los demás.
       </p>
 
-      {/* Formulario para publicar nueva intención */}
       <div className="card mt-4 p-4 space-y-3">
         <label className="text-[10px] font-semibold uppercase tracking-wider text-[#BFB8AE]">
           Publicar una intención
@@ -113,6 +109,7 @@ export default function PrayerPage() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
+        {errorMsg && <p className="text-xs text-red-400 font-light">{errorMsg}</p>}
         <button
           onClick={createRequest}
           disabled={sending || !title.trim()}
@@ -122,7 +119,6 @@ export default function PrayerPage() {
         </button>
       </div>
 
-      {/* Muro con las últimas 30 intenciones */}
       <div className="mt-6 space-y-3">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8C6969]">
           Últimas intenciones ({requests.length})
@@ -156,7 +152,6 @@ export default function PrayerPage() {
                   </p>
                 </div>
 
-                {/* Botón de reacción con contador de rezos */}
                 <button
                   onClick={() => pray(r.id, count)}
                   disabled={hasPrayed}
