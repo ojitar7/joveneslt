@@ -3,7 +3,6 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 
-// Añadimos pesos finos (300, 400, 500) para un look más estilizado
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -14,6 +13,11 @@ export const metadata: Metadata = {
   title: "Jóvenes LT",
   description: "La app de Jóvenes LT",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {

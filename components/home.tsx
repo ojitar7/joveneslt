@@ -19,7 +19,6 @@ export function Home() {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [links, setLinks] = useState<any[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
 
   async function load() {
     const now = new Date().toISOString();
@@ -33,7 +32,6 @@ export function Home() {
     setTheme(t); setMeetings(m ?? []); setChallenge(c);
     setSettings(Object.fromEntries((s ?? []).map((x: any) => [x.key, x.value])));
     setLinks(l ?? []);
-    if (!selected && m?.[0]) setSelected(m[0].id);
   }
 
   useEffect(() => {
@@ -44,7 +42,7 @@ export function Home() {
       .on("postgres_changes", { event: "*", schema: "public", table: "challenges" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "site_settings" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch) };
+    return () => { supabase.removeChannel(ch); };
   }, []);
 
   const next = meetings[0];
@@ -128,15 +126,11 @@ export function Home() {
           <span className="text-xs font-light text-[#8C6969]">2026/27</span>
         </div>
         <div className="space-y-2">
-          {meetings.slice(0, 6).map(m => (
-            <button 
+          {meetings.map(m => (
+            <Link 
               key={m.id} 
-              onClick={() => setSelected(m.id)} 
-              className={`w-full rounded-xl border p-3.5 text-left transition-all ${
-                selected === m.id 
-                  ? "border-[#BFB8AE]/40 bg-[#590A1F]/30" 
-                  : "border-[#BFB8AE]/10 bg-[#1E0308]/60 hover:border-[#BFB8AE]/25"
-              }`}
+              href={`/reunion/${m.id}`}
+              className="block w-full rounded-xl border border-[#BFB8AE]/10 bg-[#1E0308]/60 p-3.5 transition-all hover:border-[#BFB8AE]/25 active:scale-[0.99]"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -145,7 +139,7 @@ export function Home() {
                 </div>
                 <ChevronRight size={15} className="text-[#8C6969]"/>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
