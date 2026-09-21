@@ -436,13 +436,26 @@ function Calendar({ meetings, save, insert, remove }: any) {
 }
 
 function PlansAdmin({ plans, save, insert, remove }: any) {
-  const [editing, setEditing] = useState<Plan | null>(null);
+  const [editing, setEditing] = useState<Partial<Plan> | null>(null);
 
   return (
     <section className="mt-5 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-normal text-[#F2F2F2]">Planes Extraordinarios</h2>
-        <button className="btn btn-primary px-3 text-xs" onClick={() => setEditing({ id: "", title: "Nuevo Plan", starts_at: new Date().toISOString(), ends_at: null, location: "", description: "", price_cents: 0, signup_url: "", image_url: "", published: true })}>
+        <button 
+          className="btn btn-primary px-3 text-xs" 
+          onClick={() => setEditing({ 
+            title: "Nuevo Plan", 
+            starts_at: new Date().toISOString(), 
+            ends_at: null, 
+            location: "", 
+            description: "", 
+            price_cents: 0, 
+            signup_url: "", 
+            image_url: "", 
+            published: true 
+          })}
+        >
           <Plus size={15} /> Añadir
         </button>
       </div>
@@ -459,18 +472,38 @@ function PlansAdmin({ plans, save, insert, remove }: any) {
       {editing && (
         <Modal title={editing.id ? "Editar Plan" : "Nuevo Plan"} close={() => setEditing(null)}>
           <div className="space-y-3">
-            <input className="input text-xs" placeholder="Título del plan" value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} />
-            <input className="input text-xs" placeholder="Lugar" value={editing.location || ""} onChange={e => setEditing({ ...editing, location: e.target.value })} />
-            <textarea className="input text-xs min-h-20 resize-none" placeholder="Descripción" value={editing.description || ""} onChange={e => setEditing({ ...editing, description: e.target.value })} />
-            <input className="input text-xs" placeholder="Enlace de inscripción (Inscripciones, Formularios...)" value={editing.signup_url || ""} onChange={e => setEditing({ ...editing, signup_url: e.target.value })} />
-            <input className="input text-xs" type="datetime-local" value={isoLocal(editing.starts_at)} onChange={e => setEditing({ ...editing, starts_at: toIso(e.target.value) })} />
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Título</label>
+              <input className="input mt-1 text-xs" placeholder="Título del plan" value={editing.title || ""} onChange={e => setEditing({ ...editing, title: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Ubicación</label>
+              <input className="input mt-1 text-xs" placeholder="Lugar" value={editing.location || ""} onChange={e => setEditing({ ...editing, location: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Descripción</label>
+              <textarea className="input mt-1 text-xs min-h-20 resize-none" placeholder="Descripción" value={editing.description || ""} onChange={e => setEditing({ ...editing, description: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Enlace de inscripción</label>
+              <input className="input mt-1 text-xs" placeholder="https://..." value={editing.signup_url || ""} onChange={e => setEditing({ ...editing, signup_url: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Fecha y hora</label>
+              <input className="input mt-1 text-xs" type="datetime-local" value={editing.starts_at ? isoLocal(editing.starts_at) : ""} onChange={e => setEditing({ ...editing, starts_at: toIso(e.target.value) })} />
+            </div>
 
             <button className="btn btn-primary w-full text-xs" onClick={async () => {
-              if (editing.id) await save("plans", editing, ["title", "starts_at", "ends_at", "location", "description", "price_cents", "signup_url", "image_url", "published"]);
-              else await insert("plans", editing);
+              if (editing.id) {
+                await save("plans", editing, ["title", "starts_at", "ends_at", "location", "description", "price_cents", "signup_url", "image_url", "published"]);
+              } else {
+                // Al insertar, eliminamos cualquier 'id' para evitar el error de UUID invalido
+                const { id, ...newPlanData } = editing as any;
+                await insert("plans", newPlanData);
+              }
               setEditing(null);
             }}>
-              <Save size={14} /> Guardar
+              <Save size={14} /> Guardar Plan
             </button>
             {editing.id && (
               <button className="btn btn-secondary w-full text-xs text-red-400" onClick={() => { remove("plans", editing.id); setEditing(null); }}>
