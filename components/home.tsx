@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { getAnonymousId } from "@/lib/anonymous-id";
 import type { Challenge, Meeting, MeetingBlock, Plan, Poll, PollOption, Theme } from "@/lib/types";
 import { CalendarDays, ChevronRight, Clock3, Flame, MessageCircle, PartyPopper, Send, Sparkles, Timer, LockKeyhole } from "lucide-react";
+import Image from "next/image";
 
 const fmt = (iso: string, options?: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat("es-ES", options || { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
@@ -50,9 +51,18 @@ export function Home() {
   const next = meetings[0];
   return <div className="px-4 pb-8 pt-4">
     <header className="flex items-center justify-between">
-      <div>
-        <p className="text-[11px] font-black uppercase tracking-[.24em] text-[#b6c76d]">JÓVENES LT</p>
-        <p className="mt-1 text-xs text-[#aab5ae]">Comunidad · 18–26</p>
+      <div className="flex items-center gap-3">
+        <Image 
+          src="/logo.png" 
+          alt="Jóvenes LT Logo" 
+          width={40} 
+          height={40} 
+          className="rounded-full object-cover"
+        />        
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[.24em] text-[#b6c76d]">JÓVENES LT</p>
+          <p className="mt-1 text-xs text-[#aab5ae]">Fiat voluntas tua</p>
+        </div>
       </div>
       <div className="rounded-full border border-white/10 px-3 py-1 text-[11px] font-bold text-[#aab5ae]">2026/27</div>
     </header>
