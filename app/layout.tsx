@@ -1,13 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
-import Image from "next/image";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 
-// Configuración de la tipografía similar a Gotham
+// Añadimos pesos finos (300, 400, 500) para un look más estilizado
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-montserrat",
 });
 
@@ -27,7 +26,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={montserrat.variable}>
-      <body>
+      <body className="font-sans antialiased">
         <AppShell>{children}</AppShell>
       </body>
     </html>

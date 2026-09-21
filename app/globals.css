@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta adaptada al logo */
-  --bg: #130104;              /* Fondo ultra oscuro con matiz granate */
-  --surface: #260309;         /* Superficie de tarjetas */
-  --surface-2: #380511;       /* Elevación de elementos */
-  --surface-3: #48040F;       /* Color base del logo (Granate oscuro) */
-  --text: #F2F2F2;            /* Texto claro principal */
-  --muted: #8C6969;           /* Texto secundario / Marrón suave */
-  --primary: #BFB8AE;         /* Beige / Gris cálido del logo */
-  --accent: #590A1F;          /* Vino / Acento secundario */
-  --border: rgba(191, 184, 174, 0.15); /* Bordes basados en el beige */
+  /* Paleta oficial del logo */
+  --bg: #0f0104;              /* Fondo negro/granate muy profundo */
+  --surface: #1e0308;         /* Superficie de tarjetas */
+  --surface-2: #2b040c;       /* Elevación de elementos */
+  --surface-3: #48040f;       /* Base granate del logo */
+  --accent: #590a1f;          /* Vino / Acento */
+  --primary: #bfb8ae;         /* Beige / Gris cálido */
+  --muted: #8c6969;           /* Marrón suave / Secundario */
+  --text: #f2f2f2;            /* Blanco roto */
+  --border: rgba(191, 184, 174, 0.12); /* Bordes sutiles beige */
 }
 
 * { box-sizing: border-box; }
@@ -19,12 +19,14 @@ html { background: var(--bg); color-scheme: dark; }
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 80% -10%, rgba(89, 10, 31, 0.45), transparent 34rem),
-    radial-gradient(circle at -10% 35%, rgba(72, 4, 15, 0.35), transparent 28rem),
+    radial-gradient(circle at 80% -10%, rgba(89, 10, 31, 0.35), transparent 32rem),
+    radial-gradient(circle at -10% 40%, rgba(72, 4, 15, 0.25), transparent 28rem),
     var(--bg);
   color: var(--text);
-  font-family: var(--font-montserrat), "Montserrat", "Gotham", system-ui, sans-serif;
+  font-family: var(--font-montserrat), "Montserrat", sans-serif;
+  font-weight: 300;
   min-height: 100vh;
+  letter-spacing: -0.01em;
 }
 
 button, input, textarea, select { font: inherit; }
@@ -34,11 +36,21 @@ a { color: inherit; text-decoration: none; }
 .safe-bottom { padding-bottom: 92px; }
 .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
 
+/* Diseño de tarjeta geométrico y moderno */
 .card {
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
-  background: linear-gradient(145deg, rgba(56, 5, 17, 0.85), rgba(38, 3, 9, 0.95));
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(30, 3, 8, 0.9) 0%, rgba(15, 1, 4, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card-interactive {
+  cursor: pointer;
+}
+.card-interactive:active {
+  transform: scale(0.99);
 }
 
 .glow-card {
@@ -49,26 +61,29 @@ a { color: inherit; text-decoration: none; }
 .glow-card::after {
   content: "";
   position: absolute;
-  width: 170px; height: 170px;
-  right: -70px; top: -70px;
-  background: rgba(191, 184, 174, 0.12);
-  filter: blur(25px);
+  width: 180px; height: 180px;
+  right: -60px; top: -60px;
+  background: rgba(191, 184, 174, 0.08);
+  filter: blur(30px);
   border-radius: 999px;
+  pointer-events: none;
 }
 
 .input {
   width: 100%;
-  border: 1px solid rgba(191, 184, 174, 0.2);
-  border-radius: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  padding: .85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: .8rem 1rem;
   color: var(--text);
+  font-weight: 400;
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .input:focus { 
   border-color: var(--primary); 
-  box-shadow: 0 0 0 3px rgba(191, 184, 174, 0.15); 
+  box-shadow: 0 0 0 3px rgba(191, 184, 174, 0.1); 
 }
 
 .btn {
@@ -76,36 +91,37 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   gap: .5rem;
-  min-height: 44px;
-  border-radius: 1rem;
-  padding: .7rem 1rem;
-  font-weight: 800;
-  transition: transform .15s ease, opacity .15s ease, background .15s ease;
+  min-height: 42px;
+  border-radius: 0.75rem;
+  padding: .65rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn:active { transform: scale(.98); }
-.btn-primary { background: var(--primary); color: #1a0206; }
-.btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text); border: 1px solid var(--border); }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--primary); color: #0f0104; }
+.btn-secondary { background: rgba(191, 184, 174, 0.06); color: var(--text); border: 1px solid var(--border); }
 
 .pill-live {
   display: inline-flex; align-items: center; gap: .4rem;
-  border: 1px solid rgba(191, 184, 174, 0.3);
-  background: rgba(89, 10, 31, 0.4);
-  color: var(--primary); border-radius: 999px; padding: .35rem .65rem;
-  font-size: .72rem; font-weight: 900; text-transform: uppercase; letter-spacing: .08em;
+  border: 1px solid rgba(191, 184, 174, 0.25);
+  background: rgba(89, 10, 31, 0.35);
+  color: var(--primary); border-radius: 999px; padding: .3rem .65rem;
+  font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
 }
 
 .pulse-dot { 
-  width: 7px; height: 7px; border-radius: 999px; 
+  width: 6px; height: 6px; border-radius: 999px; 
   background: var(--primary); 
-  box-shadow: 0 0 0 5px rgba(191, 184, 174, 0.2); 
+  box-shadow: 0 0 0 4px rgba(191, 184, 174, 0.2); 
   animation: pulse 1.6s infinite; 
 }
 
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 .fade-in { animation: fade .35s ease both; }
-@keyframes fade { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
-.marquee-number { font-variant-numeric: tabular-nums; letter-spacing: -.05em; }
+@keyframes fade { from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
 
 .admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
 @media (min-width: 700px) {
