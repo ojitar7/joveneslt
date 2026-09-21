@@ -1,0 +1,11 @@
+{
+  "name": "Jóvenes LT",
+  "short_name": "Jóvenes LT",
+  "description": "Aplicación móvil del grupo Jóvenes LT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080d0c",
+  "theme_color": "#080d0c",
+  "lang": "es",
+  "icons": []
+}
