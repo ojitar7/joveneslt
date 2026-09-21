@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Challenge, DinnerTask, LinkItem, Meeting, Petition, Plan, Poll, PollOption, Question, Theme, ThinkGlaoSession } from "@/lib/types";
+import type { Challenge, Devotional, DinnerTask, LinkItem, Meeting, Petition, Plan, Poll, PollOption, Question, ResourceItem, Theme, ThinkGlaoSession } from "@/lib/types";
 import { 
   ArrowLeft, CalendarDays, Check, ChevronRight, Clock, Flame, 
   LogOut, MessageCircleQuestion, Plus, Save, ShieldCheck, Trash2, 
@@ -996,6 +996,139 @@ function SettingsAdmin({ banner, whatsapp, setBanner, setWhatsapp, save }: any) 
           <Save size={14} /> Guardar Configuración
         </button>
       </div>
+    </section>
+  );
+}
+
+export function DevotionalsAdmin({ meetings, save, insert, remove }: any) {
+  const [devotionals, setDevotionals] = useState<Devotional[]>([]);
+  const [editing, setEditing] = useState<Partial<Devotional> | null>(null);
+
+  const loadDevs = async () => {
+    const { data } = await supabase.from("devotionals").select("*").order("day_number");
+    setDevotionals(data ?? []);
+  };
+
+  useEffect(() => { loadDevs(); }, []);
+
+  return (
+    <section className="mt-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-normal text-[#F2F2F2]">Devocionales Diarios</h2>
+        <button
+          className="btn btn-primary px-3 text-xs"
+          onClick={() => setEditing({ day_number: 1, title: "", passage_reference: "", content: "", published: true })}
+        >
+          <Plus size={15} /> Añadir
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {devotionals.map(d => (
+          <button key={d.id} onClick={() => setEditing(d)} className="card w-full p-4 text-left hover:border-[#BFB8AE]/30 transition-all">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-semibold text-[#8C6969] uppercase">Día {d.day_number}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded border ${d.published ? "border-green-500/20 bg-green-950/20 text-green-300" : "border-[#8C6969]/20 text-[#8C6969]"}`}>
+                {d.published ? "Publicado" : "Borrador"}
+              </span>
+            </div>
+            <p className="text-sm font-medium text-[#F2F2F2] mt-1">{d.title}</p>
+          </button>
+        ))}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? "Editar Devocional" : "Nuevo Devocional"} close={() => setEditing(null)}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-[#8C6969]">Día de la semana (1-5)</label>
+                <input type="number" min="1" max="5" className="input mt-1 text-xs" value={editing.day_number} onChange={e => setEditing({ ...editing, day_number: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div>
+                <label className="text-[10px] text-[#8C6969]">Referencia bíblica</label>
+                <input className="input mt-1 text-xs" placeholder="Ej: Salmos 23:1" value={editing.passage_reference || ""} onChange={e => setEditing({ ...editing, passage_reference: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Título del devocional</label>
+              <input className="input mt-1 text-xs" value={editing.title || ""} onChange={e => setEditing({ ...editing, title: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Contenido</label>
+              <textarea className="input mt-1 text-xs min-h-28 resize-none" value={editing.content || ""} onChange={e => setEditing({ ...editing, content: e.target.value })} />
+            </div>
+            <button className="btn btn-primary w-full text-xs" onClick={async () => {
+              if (editing.id) await save("devotionals", editing, ["day_number", "title", "passage_reference", "content", "published"]);
+              else await insert("devotionals", editing);
+              setEditing(null);
+              loadDevs();
+            }}>
+              <Save size={14} /> Guardar Devocional
+            </button>
+          </div>
+        </Modal>
+      )}
+    </section>
+  );
+}
+
+export function ResourcesAdmin({ save, insert, remove }: any) {
+  const [resources, setResources] = useState<ResourceItem[]>([]);
+  const [editing, setEditing] = useState<Partial<ResourceItem> | null>(null);
+
+  const loadRes = async () => {
+    const { data } = await supabase.from("resources").select("*").order("created_at", { ascending: false });
+    setResources(data ?? []);
+  };
+
+  useEffect(() => { loadRes(); }, []);
+
+  return (
+    <section className="mt-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-normal text-[#F2F2F2]">Biblioteca de Recursos</h2>
+        <button className="btn btn-primary px-3 text-xs" onClick={() => setEditing({ type: "song", title: "", url: "https://", description: "" })}>
+          <Plus size={15} /> Añadir
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {resources.map(r => (
+          <button key={r.id} onClick={() => setEditing(r)} className="card w-full p-4 text-left hover:border-[#BFB8AE]/30 transition-all">
+            <span className="text-[10px] font-semibold text-[#8C6969] uppercase">{r.type}</span>
+            <p className="text-sm font-medium text-[#F2F2F2]">{r.title}</p>
+          </button>
+        ))}
+      </div>
+
+      {editing && (
+        <Modal title={editing.id ? "Editar Recurso" : "Nuevo Recurso"} close={() => setEditing(null)}>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] text-[#8C6969]">Tipo de recurso</label>
+              <select className="input mt-1 text-xs bg-black/50" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value as any })}>
+                <option value="song">Canción / Playlist (Spotify/YouTube)</option>
+                <option value="slides">Diapositivas / PDF</option>
+                <option value="book">Libro Recomendado</option>
+                <option value="podcast">Podcast / Audio</option>
+              </select>
+            </div>
+            <input className="input text-xs" placeholder="Título" value={editing.title || ""} onChange={e => setEditing({ ...editing, title: e.target.value })} />
+            <input className="input text-xs" placeholder="URL de enlace (https://...)" value={editing.url || ""} onChange={e => setEditing({ ...editing, url: e.target.value })} />
+            <textarea className="input text-xs min-h-16 resize-none" placeholder="Descripción breve..." value={editing.description || ""} onChange={e => setEditing({ ...editing, description: e.target.value })} />
+            
+            <button className="btn btn-primary w-full text-xs" onClick={async () => {
+              if (editing.id) await save("resources", editing, ["type", "title", "url", "description"]);
+              else await insert("resources", editing);
+              setEditing(null);
+              loadRes();
+            }}>
+              <Save size={14} /> Guardar Recurso
+            </button>
+          </div>
+        </Modal>
+      )}
     </section>
   );
 }

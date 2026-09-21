@@ -122,3 +122,32 @@ export type ThinkGlaoSession = {
   status: "scheduled" | "live" | "paused" | "finished";
   question_count: number;
 };
+
+export interface Devotional {
+  id: string;
+  meeting_id?: string;
+  day_number: number; // 1 a 5
+  title: string;
+  passage_reference?: string;
+  content: string;
+  published: boolean;
+  created_at?: string;
+}
+
+export interface ResourceItem {
+  id: string;
+  meeting_id?: string;
+  type: "slides" | "song" | "book" | "podcast";
+  title: string;
+  url: string;
+  description?: string;
+  created_at?: string;
+}
+
+export interface PrayerRequest {
+  id: string;
+  title: string;
+  body: string;
+  prayer_count: number;
+  created_at: string;
+}
